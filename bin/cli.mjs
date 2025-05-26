@@ -165,7 +165,8 @@ program
         },
         dependencies: {
           express: '^4.18.2',
-          chokidar: '^3.5.3'
+          chokidar: '^3.5.3',
+          chalk: '^4.1.2'
         }
       };
       fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
