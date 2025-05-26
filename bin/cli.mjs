@@ -112,15 +112,12 @@ const loadMocks = async (dir, method = null, baseRoute = '') => {
     const fullPath = path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      // Se o nome da pasta for um método HTTP, desce nela com o método definido
       if (validMethods.includes(entry.name.toLowerCase())) {
-        await loadMocks(fullPath, entry.name.toLowerCase(), ''); // baseRoute vazio!
+        await loadMocks(fullPath, entry.name.toLowerCase(), '');
       } else {
-        // Subpasta de rota (ex: admin/users)
         await loadMocks(fullPath, method, path.join(baseRoute, entry.name));
       }
     } else if (entry.isFile() && method) {
-      // O nome do arquivo vira o path (sem extensão)
       const route = '/' + path.join(baseRoute, entry.name.replace(/\\.(json|js)$/, '')).replace(/\\\\/g, '/');
       if (entry.name.endsWith('.json')) {
         const content = JSON.parse(await fs.promises.readFile(fullPath, 'utf-8'));
