@@ -1,6 +1,6 @@
 {
   "name": "mockadin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "keywords": ["mock", "api", "cli", "devtools"],
   "description": "A CLI tool to quickly scaffold and serve mock APIs using static JSON or dynamic JavaScript handlers, with hot-reload support for rapid development.",
