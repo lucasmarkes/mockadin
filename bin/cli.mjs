@@ -12,7 +12,7 @@ const serverFile = path.join(projectRoot, 'server/index.mjs');
 const packageJsonPath = path.join(projectRoot, 'package.json');
 
 program
-  .name('mock-api-cli')
+  .name('mockadin')
   .description('CLI to initialize and serve mock APIs')
   .version('1.0.0');
 
@@ -39,12 +39,12 @@ program
       ], null, 2),
 
       'orders.post.js': `export default (req, res) => {
-  const { product, quantity } = req.body;
-  res.json({
-    message: \`Order received: \${quantity}x \${product}\`,
-    timestamp: new Date().toISOString(),
-  });
-};`
+      const { product, quantity } = req.body;
+      res.json({
+        message: \`Order received: \${quantity}x \${product}\`,
+        timestamp: new Date().toISOString(),
+      });
+    };`
     };
 
     for (const [filename, content] of Object.entries(mockFiles)) {
@@ -184,7 +184,7 @@ program
 
     console.log(chalk.blue('\n✅ Project initialized successfully!'));
     console.log(chalk.cyan('\nNext step:'));
-    console.log(chalk.cyan('  mock-api-cli serve'));
+    console.log(chalk.cyan('  mockadin serve'));
   });
 
 program

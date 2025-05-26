@@ -1,4 +1,4 @@
-# mock-api-cli
+# mockadin
 
 A simple CLI tool to quickly create and serve mock APIs for development and testing. Supports static JSON responses and dynamic JavaScript handlers, with hot-reload for instant feedback.
 
@@ -22,8 +22,8 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 Clone this repository and install dependencies:
 
 ```sh
-git clone git@github.com:lucasmarkes/mock-api-cli.git
-cd mock-api-cli
+git clone git@github.com:lucasmarkes/mockadin.git
+cd mockadin
 npm install
 ```
 
@@ -32,7 +32,7 @@ npm install
 Create a `mocks/` directory with example mocks:
 
 ```sh
-npx mock-api-cli init
+npx mockadin init
 ```
 
 This creates:
@@ -49,7 +49,7 @@ server/
 ### 3. Start the Mock API Server
 
 ```sh
-npx mock-api-cli serve
+npx mockadin serve
 ```
 
 The server will run at [http://localhost:3000](http://localhost:3000) by default.
@@ -68,8 +68,8 @@ The server will run at [http://localhost:3000](http://localhost:3000) by default
 Example:
 
 ```sh
-npx mock-api-cli init
-npx mock-api-cli serve
+npx mockadin init
+npx mockadin serve
 ```
 
 ---
