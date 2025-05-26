@@ -19,12 +19,13 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 
 ## 1. Features
 
-- **Zero-config mock API server**  
-- **Serve static JSON or dynamic JS handlers**  
-- **Supports GET, POST, PUT, DELETE**  
-- **Hot reload on file changes**  
-- **Easy CLI commands: `init` and `serve`**  
-- **Colorful logs for easy debugging**  
+- **Zero-config mock API server**
+- **Serve static JSON or dynamic JS handlers**
+- **Supports GET, POST, PUT, DELETE**
+- **Hot reload on file changes**
+- **Easy CLI commands: `init` and `serve`**
+- **Colorful logs for easy debugging**
+- **RESTful route mapping (no HTTP verb in the URL)**
 
 ---
 
@@ -69,9 +70,11 @@ This creates:
 
 ```
 mocks/
-  users.get.json
-  products.get.json
-  orders.post.js
+  get/
+    users.json
+    products.json
+  post/
+    orders.js
 server/
   index.mjs
 ```
@@ -94,7 +97,7 @@ The server will run at [http://localhost:3000](http://localhost:3000) by default
 
 ### a) Static JSON Mock
 
-Create a file `mocks/users.get.json`:
+Create a file `mocks/get/users.json`:
 
 ```json
 [
@@ -103,13 +106,13 @@ Create a file `mocks/users.get.json`:
 ]
 ```
 
-Requesting `GET /users.get` will return this JSON.
+Requesting `GET /users` will return this JSON.
 
 ---
 
 ### b) Dynamic JS Handler
 
-Create a file `mocks/orders.post.js`:
+Create a file `mocks/post/orders.js`:
 
 ```js
 export default (req, res) => {
@@ -123,35 +126,36 @@ export default (req, res) => {
 };
 ```
 
-Requesting `POST /orders.post` with a JSON body will return a dynamic response.
+Requesting `POST /orders` with a JSON body will return a dynamic response.
 
 ---
 
 ## 6. Route Mapping
 
-By default, the route for each mock is based on the file name:
+Routes are mapped based on the folder structure:
 
-- `mocks/users.get.json` → `GET /users.get`
-- `mocks/products.get.json` → `GET /products.get`
-- `mocks/orders.post.js` → `POST /orders.post`
+- `mocks/get/users.json` → `GET /users`
+- `mocks/post/orders.js` → `POST /orders`
+- `mocks/get/products.json` → `GET /products`
+- `mocks/put/users.js` → `PUT /users`
+- `mocks/delete/users.js` → `DELETE /users`
 
-> **Note:**  
-> The route will match the file name (including the `.get`, `.post`, etc).  
-> For example, `users.get.json` will be available at `/users.get`.
-
-### Custom Methods and Nested Routes
+### Nested Routes
 
 You can nest folders for more complex routes:
 
-- `mocks/admin/users.get.json` → `GET /admin/users.get`
-- `mocks/products.delete.js` → `DELETE /products.delete`
+- `mocks/get/admin/users.json` → `GET /admin/users`
+- `mocks/post/orders/items.js` → `POST /orders/items`
 
 ### Supported HTTP Methods
 
-- `.get.json` or `.get.js` → `GET`
-- `.post.json` or `.post.js` → `POST`
-- `.put.json` or `.put.js` → `PUT`
-- `.delete.json` or `.delete.js` → `DELETE`
+- Place your mock files inside one of these folders:
+  - `get/` → `GET`
+  - `post/` → `POST`
+  - `put/` → `PUT`
+  - `delete/` → `DELETE`
+
+The file name (without extension) and subfolders define the endpoint path.
 
 ---
 

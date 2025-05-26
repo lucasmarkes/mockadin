@@ -1,6 +1,6 @@
 {
   "name": "mockadin",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "keywords": ["mock", "api", "cli", "devtools"],
   "description": "A CLI tool to quickly scaffold and serve mock APIs using static JSON or dynamic JavaScript handlers, with hot-reload support for rapid development.",
@@ -14,7 +14,7 @@
     "mockadin": "./bin/cli.mjs"
   },
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node server/index.mjs"
   },
   "dependencies": {
     "express": "^4.18.2",

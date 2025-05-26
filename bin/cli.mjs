@@ -27,33 +27,47 @@ program
       console.log(chalk.yellow('⚠ Folder already exists: mocks/'));
     }
 
-    const mockFiles = {
-      'users.get.json': JSON.stringify([
+    const mockFiles = [
+    {
+      dir: path.join(mockDir, 'get'),
+      filename: 'users.json',
+      content: JSON.stringify([
         { id: 1, name: 'Alice' },
         { id: 2, name: 'Bob' }
-      ], null, 2),
-
-      'products.get.json': JSON.stringify([
+      ], null, 2)
+    },
+    {
+      dir: path.join(mockDir, 'get'),
+      filename: 'products.json',
+      content: JSON.stringify([
         { id: 1, name: 'Laptop' },
         { id: 2, name: 'Phone' }
-      ], null, 2),
-
-      'orders.post.js': `export default (req, res) => {
+      ], null, 2)
+    },
+    {
+      dir: path.join(mockDir, 'post'),
+      filename: 'orders.js',
+      content: `export default (req, res) => {
 const { product, quantity } = req.body;
   res.json({
     message: \`Order received: \${quantity}x \${product}\`,
     timestamp: new Date().toISOString(),
   });
 };`
-    };
+    }
+];
 
-    for (const [filename, content] of Object.entries(mockFiles)) {
-      const filePath = path.join(mockDir, filename);
+    for (const { dir, filename, content } of mockFiles) {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(chalk.green(`✔ Created folder: ${path.relative(projectRoot, dir)}`));
+      }
+      const filePath = path.join(dir, filename);
       if (!fs.existsSync(filePath)) {
         fs.writeFileSync(filePath, content);
-        console.log(chalk.green(`✔ Created: mocks/${filename}`));
+        console.log(chalk.green(`✔ Created: ${path.relative(projectRoot, filePath)}`));
       } else {
-        console.log(chalk.yellow(`⚠ Already exists: mocks/${filename}`));
+        console.log(chalk.yellow(`⚠ Already exists: ${path.relative(projectRoot, filePath)}`));
       }
     }
 
@@ -76,49 +90,53 @@ const clearRoutes = (app) => {
   );
 };
 
-const loadMocks = async (dir, baseRoute = '') => {
+const validMethods = ['get', 'post', 'put', 'delete'];
+
+const isValidName = (name) => /^[\\w\\-\\.]+$/.test(name);
+
+const loadMocks = async (dir, method = null, baseRoute = '') => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
+    if (
+      !isValidName(entry.name) ||
+      entry.name.startsWith('.') ||
+      entry.name.includes('..') ||
+      entry.name.includes('/') ||
+      entry.name.includes('\\\\') 
+    ) {
+      console.log(chalk.red(\`❌ Ignoring invalid file or folder name: \${entry.name}\`));
+      continue;
+    }
+
     const fullPath = path.join(dir, entry.name);
-    const routePath = path.join(baseRoute, entry.name.replace(/\\.(json|js)$/, ''));
-    const route = \`/\${routePath.replace(/\\\\/g, '/')}\`;
-    const parts = entry.name.split('.');
-    const method = parts.length > 1 ? parts[parts.length - 2].toLowerCase() : 'get';
-    const validMethods = ['get', 'post', 'put', 'delete'];
 
     if (entry.isDirectory()) {
-      await loadMocks(fullPath, routePath);
-    } else if (entry.isFile()) {
+      // Se o nome da pasta for um método HTTP, desce nela com o método definido
+      if (validMethods.includes(entry.name.toLowerCase())) {
+        await loadMocks(fullPath, entry.name.toLowerCase(), ''); // baseRoute vazio!
+      } else {
+        // Subpasta de rota (ex: admin/users)
+        await loadMocks(fullPath, method, path.join(baseRoute, entry.name));
+      }
+    } else if (entry.isFile() && method) {
+      // O nome do arquivo vira o path (sem extensão)
+      const route = '/' + path.join(baseRoute, entry.name.replace(/\\.(json|js)$/, '')).replace(/\\\\/g, '/');
       if (entry.name.endsWith('.json')) {
         const content = JSON.parse(await fs.promises.readFile(fullPath, 'utf-8'));
         const handler = (req, res) => res.json(content);
-
-        if (validMethods.includes(method)) {
-          app[method](route, handler);
-          console.log(chalk.green(\`[\${method.toUpperCase()}] \${route}\`));
-        } else {
-          app.get(route, handler);
-          console.log(chalk.blue(\`[GET] \${route}\`));
-        }
+        app[method](route, handler);
+        console.log(chalk.green(\`[\${method.toUpperCase()}] \${route}\`));
       }
-
       if (entry.name.endsWith('.js')) {
         const handlerModule = await import(\`file://\${fullPath}\`);
         const handler = handlerModule.default;
-
         if (typeof handler !== 'function') {
           console.log(chalk.red(\`❌ \${entry.name} does not export a default function.\`));
           continue;
         }
-
-        if (validMethods.includes(method)) {
-          app[method](route, handler);
-          console.log(chalk.magenta(\`[\${method.toUpperCase()}] \${route} (dynamic)\`));
-        } else {
-          app.get(route, handler);
-          console.log(chalk.cyan(\`[GET] \${route} (dynamic)\`));
-        }
+        app[method](route, handler);
+        console.log(chalk.magenta(\`[\${method.toUpperCase()}] \${route} (dynamic)\`));
       }
     }
   }
