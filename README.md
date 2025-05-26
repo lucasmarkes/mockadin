@@ -1,110 +1,101 @@
-# Mock API with Hot Reload
+# mock-api-cli
 
-## Table of Contents
-
-- [Introduction](#introduction)  
-- [Features](#features)  
-- [Installation](#installation)  
-- [Usage](#usage)  
-  - [Serve command](#serve-command)  
-  - [Init command](#init-command)  
-- [Mocks Structure](#mocks-structure)  
-- [How to Create Your Own Mocks](#how-to-create-your-own-mocks)  
-- [File Naming Convention](#file-naming-convention)  
-- [Hot Reload](#hot-reload)  
-- [Example](#example)  
-- [Contributing](#contributing)  
-- [License](#license)  
-
----
-
-## Introduction
-
-This is a lightweight mock API server with hot reload capability, designed for quick development and testing of frontend apps or APIs without backend setup. It supports JSON files and dynamic JavaScript handlers, automatically updating endpoints on file changes.
+A simple CLI tool to quickly create and serve mock APIs for development and testing. Supports static JSON responses and dynamic JavaScript handlers, with hot-reload for instant feedback.
 
 ---
 
 ## Features
 
-- Serve mock APIs based on JSON files or JS handler modules  
-- Supports HTTP methods: GET, POST, PUT, DELETE  
-- Hot reload: automatically reloads mocks when files or folders are added, modified, or deleted  
-- CLI commands for starting the server (`serve`) and initializing example mocks (`init`)  
-- Easy directory-based route mapping  
-- Colorful console logs for easy debugging  
+- **Zero-config mock API server**  
+- **Serve static JSON or dynamic JS handlers**  
+- **Supports GET, POST, PUT, DELETE**  
+- **Hot reload on file changes**  
+- **Easy CLI commands: `init` and `serve`**  
+- **Colorful logs for easy debugging**  
 
 ---
 
-## Installation
+## Getting Started
 
-You can install the package via npm/yarn if published, or clone the repo and run it locally:
+### 1. Installation
 
-```bash
+Clone this repository and install dependencies:
+
+```sh
+git clone git@github.com:lucasmarkes/mock-api-cli.git
+cd mock-api-cli
 npm install
-# or
-yarn install
-```
-Usage
-Run the mock API server with:
-
-```bash
-node your-script.js serve --port 3000 --from ./mocks
-```
-Or initialize example mocks structure:
-
-```bash
-node your-script.js init
 ```
 
-## Serve command
-Start the mock API server.
+### 2. Initialize a Mock Project
 
-| Option       | Description          | Default   |
-| ------------ | -------------------- | --------- |
-| `-p, --port` | Server port          | 3000      |
-| `-f, --from` | Mocks directory path | `./mocks` |
+Create a `mocks/` directory with example mocks:
 
-## Init command
-Creates a basic example mocks structure in the ./mocks directory with sample GET and POST mocks.
+```sh
+npx mock-api-cli init
+```
 
-## Mocks Structure
-Mocks are organized in a directory, with files named according to route and HTTP method.
+This creates:
 
-Examples:
-
-```bash
+```
 mocks/
-├── users.get.json
-├── products.get.json
-└── orders.post.js
+  users.get.json
+  products.get.json
+  orders.post.js
+server/
+  index.mjs
 ```
 
-## How to Create Your Own Mocks
-- JSON files: respond with static JSON data
-- JS files: export a default function (req, res) => {} to handle requests dynamically
+### 3. Start the Mock API Server
 
-## File Naming Convention
-The file name defines the route and method.
-
-Format:
-```bash
-<route>.<http-method>.<json|js>
+```sh
+npx mock-api-cli serve
 ```
 
-- `<route>`: path for the endpoint, slashes replaced by folders
-- `<http-method>`: get, post, put, delete
-- Extension: .json for static responses, .js for dynamic handlers
+The server will run at [http://localhost:3000](http://localhost:3000) by default.
+
+---
+
+## Usage
+
+### CLI Commands
+
+| Command         | Description                       |
+|-----------------|-----------------------------------|
+| `init`          | Initialize example mocks & server  |
+| `serve`         | Start the mock API server         |
 
 Example:
-`orders.post.js` handles POST requests to /orders.
 
-## Hot Reload
-The server watches the mocks directory and reloads mocks automatically on file or folder changes.
+```sh
+npx mock-api-cli init
+npx mock-api-cli serve
+```
 
-## Example
-Example orders.post.js dynamic handler:
+---
 
-```javascript
+## Mocks Structure
+
+Mocks are placed in the `mocks/` directory.  
+File naming convention: `<route>.<method>.<json|js>`
+
+- **Static JSON:**  
+  `users.get.json` → `GET /users`
+- **Dynamic JS:**  
+  `orders.post.js` → `POST /orders`
+
+#### Example: Static JSON
+
+```json
+[
+  { "id": 1, "name": "Alice" },
+  { "id": 2, "name": "Bob" }
+]
+```
+
+#### Example: Dynamic JS
+
+```js
 export default (req, res) => {
   const { product, quantity } = req.body;
   res.json({
@@ -114,8 +105,21 @@ export default (req, res) => {
 };
 ```
 
-## Contributing
-Feel free to open issues or pull requests to improve this project.
+---
+
+## Hot Reload
+
+Any changes in the `mocks/` directory are automatically detected and reloaded—no need to restart the server.
+
+---
+
+## Customization
+
+- Add new endpoints by creating files in `mocks/` following the naming convention.
+- Supports subfolders for nested routes.
+
+---
 
 ## License
+
 MIT License
