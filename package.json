@@ -1,12 +1,12 @@
 {
   "name": "mock-api-cli",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
   "bin": {
-    "mock-api": "./bin/cli.js"
+    "mock-api-cli": "./bin/cli.mjs"
   },
   "scripts": {
-    "start": "node ./bin/cli.js"
+    "start": "node index.mjs"
   },
   "dependencies": {
     "express": "^4.18.2",
