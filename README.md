@@ -4,7 +4,20 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 
 ---
 
-## Features
+## Index
+
+1. [Features](#1-features)  
+2. [Installation](#2-installation)  
+3. [Project Initialization](#3-project-initialization)  
+4. [Starting the Server](#4-starting-the-server)  
+5. [Usage Examples](#5-usage-examples)  
+6. [Route Mapping](#6-route-mapping)  
+7. [Links](#7-links)  
+8. [License](#8-license)  
+
+---
+
+## 1. Features
 
 - **Zero-config mock API server**  
 - **Serve static JSON or dynamic JS handlers**  
@@ -15,24 +28,41 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 
 ---
 
-## Getting Started
+## 2. Installation
 
-### 1. Installation
+You can install and use `mockadin` in two ways:
 
-Clone this repository and install dependencies:
+### a) Using npm (recommended)
+
+Install globally:
 
 ```sh
-git clone git@github.com:lucasmarkes/mockadin.git
+npm install -g mockadin
+```
+
+Or use with npx (no global install needed):
+
+```sh
+npx mockadin init
+npx mockadin serve
+```
+
+### b) Cloning the repository
+
+```sh
+git clone https://github.com/lucasmarkes/mockadin.git
 cd mockadin
 npm install
 ```
 
-### 2. Initialize a Mock Project
+---
 
-Create a `mocks/` directory with example mocks:
+## 3. Project Initialization
+
+Initialize a mock project with example files:
 
 ```sh
-npx mockadin init
+mockadin init
 ```
 
 This creates:
@@ -46,45 +76,25 @@ server/
   index.mjs
 ```
 
-### 3. Start the Mock API Server
+---
+
+## 4. Starting the Server
+
+Start the mock API server:
 
 ```sh
-npx mockadin serve
+mockadin serve
 ```
 
 The server will run at [http://localhost:3000](http://localhost:3000) by default.
 
 ---
 
-## Usage
+## 5. Usage Examples
 
-### CLI Commands
+### a) Static JSON Mock
 
-| Command         | Description                       |
-|-----------------|-----------------------------------|
-| `init`          | Initialize example mocks & server  |
-| `serve`         | Start the mock API server         |
-
-Example:
-
-```sh
-npx mockadin init
-npx mockadin serve
-```
-
----
-
-## Mocks Structure
-
-Mocks are placed in the `mocks/` directory.  
-File naming convention: `<route>.<method>.<json|js>`
-
-- **Static JSON:**  
-  `users.get.json` → `GET /users`
-- **Dynamic JS:**  
-  `orders.post.js` → `POST /orders`
-
-#### Example: Static JSON
+Create a file `mocks/users.get.json`:
 
 ```json
 [
@@ -93,33 +103,65 @@ File naming convention: `<route>.<method>.<json|js>`
 ]
 ```
 
-#### Example: Dynamic JS
+Requesting `GET /users.get` will return this JSON.
+
+---
+
+### b) Dynamic JS Handler
+
+Create a file `mocks/orders.post.js`:
 
 ```js
 export default (req, res) => {
   const { product, quantity } = req.body;
   res.json({
-    message: `Order received: ${quantity}x ${product}`,
-    timestamp: new Date().toISOString(),
+    orderId: Math.floor(Math.random() * 10000),
+    product,
+    quantity,
+    status: "created"
   });
 };
 ```
 
----
-
-## Hot Reload
-
-Any changes in the `mocks/` directory are automatically detected and reloaded—no need to restart the server.
+Requesting `POST /orders.post` with a JSON body will return a dynamic response.
 
 ---
 
-## Customization
+## 6. Route Mapping
 
-- Add new endpoints by creating files in `mocks/` following the naming convention.
-- Supports subfolders for nested routes.
+By default, the route for each mock is based on the file name:
+
+- `mocks/users.get.json` → `GET /users.get`
+- `mocks/products.get.json` → `GET /products.get`
+- `mocks/orders.post.js` → `POST /orders.post`
+
+> **Note:**  
+> The route will match the file name (including the `.get`, `.post`, etc).  
+> For example, `users.get.json` will be available at `/users.get`.
+
+### Custom Methods and Nested Routes
+
+You can nest folders for more complex routes:
+
+- `mocks/admin/users.get.json` → `GET /admin/users.get`
+- `mocks/products.delete.js` → `DELETE /products.delete`
+
+### Supported HTTP Methods
+
+- `.get.json` or `.get.js` → `GET`
+- `.post.json` or `.post.js` → `POST`
+- `.put.json` or `.put.js` → `PUT`
+- `.delete.json` or `.delete.js` → `DELETE`
 
 ---
 
-## License
+## 7. Links
 
-MIT License
+- [npm package](https://www.npmjs.com/package/mockadin)
+- [GitHub repository](https://github.com/lucasmarkes/mockadin)
+
+---
+
+## 8. License
+
+MIT © Lucas Marques
