@@ -63,8 +63,16 @@ npm install
 Initialize a mock project with example files:
 
 ```sh
+mockadin init <project-folder-name>
+```
+or, if you omit the folder name, the CLI will prompt you for it:
+
+```sh
 mockadin init
 ```
+
+You will see a welcome message and be asked to enter the project folder name.  
+The project will always be created in a **new folder** with the name you provide (it will not overwrite your current directory).
 
 This creates:
 

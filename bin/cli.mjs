@@ -4,12 +4,9 @@ import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import readline from 'readline';
 
 const program = new Command();
-const projectRoot = process.cwd();
-const mockDir = path.join(projectRoot, 'mocks');
-const serverFile = path.join(projectRoot, 'server/index.mjs');
-const packageJsonPath = path.join(projectRoot, 'package.json');
 
 program
   .name('mockadin')
@@ -17,9 +14,43 @@ program
   .version('1.0.0');
 
 program
-  .command('init')
-  .description('Initialize a mock API project')
-  .action(() => {
+  .command('init [projectName]')
+  .description('Initialize a mockadin project')
+  .action(async (projectName) => {
+    console.log(
+      chalk.bold.cyan('\nWelcome to mockadin!') +
+      chalk.gray('\nLet\'s create your new mock API project.\n')
+    );
+    if (!projectName) {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+      projectName = await new Promise((resolve) => {
+        rl.question('Project folder name: ', (answer) => {
+          rl.close();
+          resolve(answer.trim());
+        });
+      });
+      if (!projectName) {
+        console.log(chalk.red('❌ Project name can\'t be empty.'));
+        process.exit(1);
+      }
+    }
+
+    const projectRoot = path.join(process.cwd(), projectName);
+    const mockDir = path.join(projectRoot, 'mocks');
+    const serverFile = path.join(projectRoot, 'server/index.mjs');
+    const packageJsonPath = path.join(projectRoot, 'package.json');
+
+    if (fs.existsSync(projectRoot)) {
+      console.log(chalk.red(`❌ The folder "${projectName}" already exists.`));
+      process.exit(1);
+    }
+
+    fs.mkdirSync(projectRoot, { recursive: true });
+    console.log(chalk.green(`✔ Project folder created: ${projectName}/`));
+
     if (!fs.existsSync(mockDir)) {
       fs.mkdirSync(mockDir);
       console.log(chalk.green('✔ Created folder: mocks/'));
@@ -200,7 +231,7 @@ loadMocks(mocksDir).then(() => {
 
     console.log(chalk.cyan('\n📦 Installing dependencies...'));
     try {
-      execSync('npm install', { stdio: 'inherit' });
+      execSync('npm install', { cwd: projectRoot, stdio: 'inherit' });
       console.log(chalk.green('\n✅ Dependencies installed!'));
     } catch (err) {
       console.error(chalk.red('\n❌ Failed to install dependencies.'));
@@ -208,7 +239,7 @@ loadMocks(mocksDir).then(() => {
 
     console.log(chalk.blue('\n✅ Project initialized successfully!'));
     console.log(chalk.cyan('\nNext step:'));
-    console.log(chalk.cyan('  mockadin serve'));
+    console.log(chalk.cyan(`  cd ${projectName} && mockadin serve`));
   });
 
 program
