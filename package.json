@@ -1,8 +1,13 @@
 {
   "name": "mockadin",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
-  "keywords": ["mock", "api", "cli", "devtools"],
+  "keywords": [
+    "mock",
+    "api",
+    "cli",
+    "devtools"
+  ],
   "description": "A CLI tool to quickly scaffold and serve mock APIs using static JSON or dynamic JavaScript handlers, with hot-reload support for rapid development.",
   "author": "Lucas Marques",
   "license": "MIT",
@@ -17,9 +22,11 @@
     "start": "node server/index.mjs"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "commander": "^10.0.1",
+    "@faker-js/faker": "^9.8.0",
+    "chalk": "^5.2.0",
     "chokidar": "^3.5.3",
-    "chalk": "^5.2.0"
+    "commander": "^10.0.1",
+    "express": "^4.18.2",
+    "inquirer": "^12.6.3"
   }
 }

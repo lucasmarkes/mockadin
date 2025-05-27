@@ -9,11 +9,12 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 1. [Features](#1-features)  
 2. [Installation](#2-installation)  
 3. [Project Initialization](#3-project-initialization)  
-4. [Starting the Server](#4-starting-the-server)  
-5. [Usage Examples](#5-usage-examples)  
-6. [Route Mapping](#6-route-mapping)  
-7. [Links](#7-links)  
-8. [License](#8-license)  
+4. [Starting the Server](#4-starting-the-server)
+5. [Generating Mocks Interactively](#5-generating-mocks-interactively)  
+6. [Usage Examples](#6-usage-examples)  
+7. [Route Mapping](#7-route-mapping)  
+8. [Links](#8-links)  
+9. [License](#9-license)  
 
 ---
 
@@ -97,11 +98,39 @@ Start the mock API server:
 mockadin serve
 ```
 
-The server will run at [http://localhost:3000](http://localhost:3000) by default.
+The server will run at [http://localhost:4000](http://localhost:4000) by default.  
+You can change the port by setting the `PORT` environment variable:
+
+```sh
+PORT=5000 mockadin serve
+```
+---
+
+## 5. Generating Mocks Interactively
+
+You can generate mock endpoints for any resource using the interactive CLI:
+
+```sh
+mockadin generate [resource-name]
+```
+
+- If you omit the resource name, the CLI will prompt you for it.
+- You will be asked which HTTP methods (GET, POST, PUT, DELETE) you want to generate for this resource.
+- For GET, you can define the fields, types, and how many objects to generate (using fake data).
+- For POST, PUT, and DELETE, handler files are generated that return example responses.
+- All files are created in the appropriate `mocks/<method>/` folders.
+
+**Example:**
+
+```sh
+mockadin generate books
+```
+
+This will guide you through creating mocks for the `books` resource, letting you choose which endpoints and fields to generate.
 
 ---
 
-## 5. Usage Examples
+## 6. Usage Examples
 
 ### a) Static JSON Mock
 
@@ -138,7 +167,7 @@ Requesting `POST /orders` with a JSON body will return a dynamic response.
 
 ---
 
-## 6. Route Mapping
+## 7. Route Mapping
 
 Routes are mapped based on the folder structure:
 
@@ -167,13 +196,13 @@ The file name (without extension) and subfolders define the endpoint path.
 
 ---
 
-## 7. Links
+## 8. Links
 
 - [npm package](https://www.npmjs.com/package/mockadin)
 - [GitHub repository](https://github.com/lucasmarkes/mockadin)
 
 ---
 
-## 8. License
+## 9. License
 
 MIT © Lucas Marques

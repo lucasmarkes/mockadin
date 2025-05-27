@@ -5,6 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import readline from 'readline';
+import inquirer from 'inquirer';
+import { faker } from '@faker-js/faker';
 
 const program = new Command();
 
@@ -192,7 +194,7 @@ const startWatching = (watchPath) => {
     .on('unlinkDir', reload);
 };
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 const mocksDir = path.resolve(process.cwd(), 'mocks');
 
 loadMocks(mocksDir).then(() => {
@@ -211,8 +213,9 @@ loadMocks(mocksDir).then(() => {
 
     if (!fs.existsSync(packageJsonPath)) {
       const packageJson = {
-        name: 'mock-api-project',
-        version: '1.0.0',
+        name: 'mockadin-project',
+        description: 'A mock API project created with mockadin',
+        version: '1.0.7',
         type: 'module',
         scripts: {
           start: 'node server/index.mjs'
@@ -220,7 +223,9 @@ loadMocks(mocksDir).then(() => {
         dependencies: {
           express: '^4.18.2',
           chokidar: '^3.5.3',
-          chalk: '^4.1.2'
+          chalk: '^4.1.2',
+          '@faker-js/faker': '^9.8.0',
+          inquirer: '^12.6.3'
         }
       };
       fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
@@ -240,6 +245,128 @@ loadMocks(mocksDir).then(() => {
     console.log(chalk.blue('\n✅ Project initialized successfully!'));
     console.log(chalk.cyan('\nNext step:'));
     console.log(chalk.cyan(`  cd ${projectName} && mockadin serve`));
+  });
+
+program
+  .command('generate [resource]')
+  .description('Generate mock endpoints for a resource')
+  .action(async (resource) => {
+    const cwd = process.cwd();
+    const mocksDir = path.join(cwd, 'mocks');
+    const serverDir = path.join(cwd, 'server');
+    const packageJsonPath = path.join(cwd, 'package.json');
+
+    console.log(chalk.gray('\nLet\'s create some mock endpoints for your resource.\n'));
+
+    if (!fs.existsSync(mocksDir) || !fs.existsSync(serverDir) || !fs.existsSync(packageJsonPath)) {
+      console.log(chalk.red('❌ You must run this inside a mockadin project folder.'));
+      process.exit(1);
+    }
+
+    if (!resource) {
+      const answer = await inquirer.prompt({
+        type: 'input',
+        name: 'resource',
+        message: chalk.yellow('Resource name?')
+      });
+      resource = answer.resource.trim();
+      if (!resource) {
+        console.log(chalk.red('❌ Resource name cannot be empty.'));
+        process.exit(1);
+      }
+    }
+
+    const { endpoints } = await inquirer.prompt({
+      type: 'checkbox',
+      name: 'endpoints',
+      message: chalk.yellow('Which endpoints do you want to generate?'),
+      choices: [
+        { name: 'GET', value: 'get', checked: true },
+        { name: 'POST', value: 'post' },
+        { name: 'PUT', value: 'put' },
+        { name: 'DELETE', value: 'delete' }
+      ],
+      validate: arr => arr.length > 0 || 'Select at least one http method'
+    });
+
+    if (endpoints.includes('get')) {
+      const { count } = await inquirer.prompt({
+        type: 'number',
+        name: 'count',
+        message: 'How many objects for GET?',
+        default: 5,
+        validate: n => n > 0 || 'Enter a positive number'
+      });
+      const fields = [];
+      let addMore = true;
+      while (addMore) {
+        const { fieldName } = await inquirer.prompt({
+          type: 'input',
+          name: 'fieldName',
+          message: 'Field name?'
+        });
+        const { fieldType } = await inquirer.prompt({
+          type: 'list',
+          name: 'fieldType',
+          message: `Type for "${fieldName}"?`,
+          choices: [
+            { name: 'String (random word)', value: 'String' },
+            { name: 'Number (1-100)', value: 'Number' },
+            { name: 'Boolean', value: 'Boolean' },
+            { name: 'Date (recent)', value: 'Date' },
+            { name: 'UUID', value: 'UUID' },
+            { name: 'Email', value: 'Email' },
+            { name: 'Name', value: 'Name' }
+          ]
+        });
+        fields.push({ fieldName, fieldType });
+        const { more } = await inquirer.prompt({
+          type: 'confirm',
+          name: 'more',
+          message: 'Add another field?',
+          default: true
+        });
+        addMore = more;
+      }
+
+      const data = [];
+      for (let i = 0; i < count; i++) {
+        const obj = {};
+        for (const { fieldName, fieldType } of fields) {
+          switch (fieldType) {
+            case 'String': obj[fieldName] = faker.lorem.word(); break;
+            case 'Number': obj[fieldName] = faker.number.int({ min: 1, max: 100 }); break;
+            case 'Boolean': obj[fieldName] = faker.datatype.boolean(); break;
+            case 'Date': obj[fieldName] = faker.date.recent().toISOString(); break;
+            case 'UUID': obj[fieldName] = faker.string.uuid(); break;
+            case 'Email': obj[fieldName] = faker.internet.email(); break;
+            case 'Name': obj[fieldName] = faker.person.fullName(); break;
+          }
+        }
+        data.push(obj);
+      }
+      const getDir = path.join(mocksDir, 'get');
+      if (!fs.existsSync(getDir)) fs.mkdirSync(getDir, { recursive: true });
+      fs.writeFileSync(path.join(getDir, `${resource}.json`), JSON.stringify(data, null, 2));
+      console.log(chalk.green(`✔ GET mock created: mocks/get/${resource}.json`));
+    }
+
+    const handlerTemplate = (method) => 
+`export default (req, res) => {
+  res.json({ message: '${method.toUpperCase()} ${resource} endpoint hit!' });
+};`;
+
+    for (const method of ['post', 'put', 'delete']) {
+      if (endpoints.includes(method)) {
+        const dir = path.join(mocksDir, method);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(
+          path.join(dir, `${resource}.js`),
+          handlerTemplate(method)
+        );
+        console.log(chalk.green(`✔ ${method.toUpperCase()} mock created: mocks/${method}/${resource}.js`));
+      }
+    }
   });
 
 program
