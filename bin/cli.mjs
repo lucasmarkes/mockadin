@@ -215,7 +215,7 @@ loadMocks(mocksDir).then(() => {
       const packageJson = {
         name: 'mockadin-project',
         description: 'A mock API project created with mockadin',
-        version: '1.0.7',
+        version: '1.0.8',
         type: 'module',
         scripts: {
           start: 'node server/index.mjs'
@@ -339,7 +339,7 @@ program
             case 'Boolean': obj[fieldName] = faker.datatype.boolean(); break;
             case 'Date': obj[fieldName] = faker.date.recent().toISOString(); break;
             case 'UUID': obj[fieldName] = faker.string.uuid(); break;
-            case 'Email': obj[fieldName] = faker.internet.email(); break;
+            case 'Email': obj[fieldName] = faker.internet.email().toLowerCase(); break;
             case 'Name': obj[fieldName] = faker.person.fullName(); break;
           }
         }
