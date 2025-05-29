@@ -81,9 +81,12 @@ This creates:
 mocks/
   get/
     users.json
-    products.json
   post/
-    orders.js
+    users.js
+  put/
+    users.js
+  delete/
+    users.js
 server/
   index.mjs
 ```
