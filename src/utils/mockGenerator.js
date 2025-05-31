@@ -49,13 +49,21 @@ export async function generateMocks(resource) {
       default: 5,
       validate: n => n > 0 || 'Enter a positive number'
     });
+    
+    const { fieldCount } = await inquirer.prompt({
+      type: 'number',
+      name: 'fieldCount',
+      message: 'How many fields per object?',
+      default: 2,
+      validate: n => n > 0 || 'Enter a positive number'
+    });
+
     const fields = [];
-    let addMore = true;
-    while (addMore) {
+    for (let i = 0; i < fieldCount; i++) {
       const { fieldName } = await inquirer.prompt({
         type: 'input',
         name: 'fieldName',
-        message: 'Field name?',
+        message: `Field #${i + 1} name?`,
         validate: input => input && input.trim() ? true : 'Field name cannot be empty'
       });
       const { fieldType } = await inquirer.prompt({
@@ -69,21 +77,12 @@ export async function generateMocks(resource) {
           { name: 'Date (recent)', value: 'Date' },
           { name: 'UUID', value: 'UUID' },
           { name: 'Email', value: 'Email' },
-          { name: 'Name', value: 'Name' }
+          { name: 'Name', value: 'Name' },
+          { name: 'Image (URL)', value: 'Image' },    
+          { name: 'Stream (base64)', value: 'Stream' }
         ]
       });
       fields.push({ fieldName, fieldType });
-      const { more } = await inquirer.prompt({
-        type: 'input',
-        name: 'more',
-        message: 'Add another field? (y/n)',
-        validate: input => {
-          if (!input) return 'Please enter y or n';
-          return /^[yYnN]$/.test(input.trim()) ? true : 'Please enter y or n';
-        },
-        filter: input => input.trim().toLowerCase()
-      });
-      addMore = more === 'y';
     }
 
     const data = [];
@@ -98,6 +97,8 @@ export async function generateMocks(resource) {
           case 'UUID': obj[fieldName] = faker.string.uuid(); break;
           case 'Email': obj[fieldName] = faker.internet.email(); break;
           case 'Name': obj[fieldName] = faker.person.fullName(); break;
+          case 'Image': obj[fieldName] = faker.image.urlPicsumPhotos(); break;
+          case 'Stream': obj[fieldName] = faker.string.base64({ length: 20 }); break;
         }
       }
       data.push(obj);
@@ -106,7 +107,7 @@ export async function generateMocks(resource) {
     if (!fs.existsSync(getDir)) fs.mkdirSync(getDir, { recursive: true });
     fs.writeFileSync(path.join(getDir, `${resource}.json`), JSON.stringify(data, null, 2));
     console.log(chalk.green(`✔ GET mock created: mocks/get/${resource}.json`));
-  }
+}
 
   const handlerTemplate = (method) => 
 `export default (req, res) => {
