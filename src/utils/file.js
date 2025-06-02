@@ -102,7 +102,9 @@ export async function createProjectStructure(projectName) {
       chokidar: '^3.5.3',
       chalk: '^4.1.2',
       '@faker-js/faker': '^9.8.0',
-      inquirer: '^12.6.3'
+      inquirer: '^12.6.3',
+      "swagger-ui-express": "^4.6.3",
+      "swagger-jsdoc": "^6.2.8"
     }
   };
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
@@ -110,7 +112,7 @@ export async function createProjectStructure(projectName) {
 
   console.log(chalk.cyan('\n📦 Installing dependencies...'));
   try {
-    execSync('npm install', { cwd: projectRoot, stdio: 'inherit' });
+    execSync('npm install --loglevel=error', { cwd: projectRoot, stdio: 'inherit' });
     console.log(chalk.green('\n✅ Dependencies installed!'));
   } catch (err) {
     console.error(chalk.red('\n❌ Failed to install dependencies.'));

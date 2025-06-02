@@ -6,9 +6,54 @@ import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJSDoc from 'swagger-jsdoc';
 
 const app = express();
 app.use(express.json());
+
+const port = process.env.PORT || 4000;
+const mocksDir = path.resolve(process.cwd(), 'mocks');
+
+const generateSwaggerSpec = () => {
+  const paths = {};
+  const methods = ['get', 'post', 'put', 'delete'];
+  for (const method of methods) {
+    const dir = path.join(mocksDir, method);
+    if (!fs.existsSync(dir)) continue;
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const resourceName = file.replace(/\.(json|js)$/, '');
+      const route = '/' + resourceName;
+      if (!paths[route]) paths[route] = {};
+      paths[route][method] = {
+        tags: [resourceName],
+        summary: \`Mocked \${method.toUpperCase()} for \${resourceName}\`,
+        responses: {
+          200: { description: 'Success' }
+        }
+      };
+    }
+  }
+  return {
+    openapi: '3.0.0',
+    info: {
+      title: 'Mockadin API',
+      version: '1.0.0'
+    },
+    paths
+  };
+};
+
+let swaggerSpec = generateSwaggerSpec();
+
+app.get('/swagger.json', (req, res) => {
+  res.json(swaggerSpec);
+});
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, {
+  swaggerOptions: { url: '/swagger.json' }
+}));
 
 const methodColor = (method) => {
   switch (method.toLowerCase()) {
@@ -23,7 +68,9 @@ const methodColor = (method) => {
 const clearRoutes = (app) => {
   if (!app._router) return;
   app._router.stack = app._router.stack.filter(
-    (layer) => !layer.route
+    (layer) =>
+      !layer.route ||
+      ['/swagger.json', '/docs'].includes(layer.route?.path)
   );
 };
 
@@ -97,7 +144,9 @@ const startWatching = (watchPath) => {
       console.log(chalk.cyan('🔄 Reloading mocks...'));
       clearRoutes(app);
       await loadMocks(watchPath);
+      swaggerSpec = generateSwaggerSpec();
       console.log(chalk.cyan('✅ Mocks updated!'));
+      console.log(chalk.cyan.bold('📖 Swagger docs: ') + chalk.underline.blue('http://localhost:' + port + '/docs'));
     }, 100);
   };
 
@@ -109,13 +158,11 @@ const startWatching = (watchPath) => {
     .on('unlinkDir', reload);
 };
 
-const port = process.env.PORT || 4000;
-const mocksDir = path.resolve(process.cwd(), 'mocks');
-
 loadMocks(mocksDir).then(() => {
   startWatching(mocksDir);
   app.listen(port, () => {
     console.log(chalk.yellow(\`🚀 Mock API running at http://localhost:\${port}\`));
+    console.log(chalk.cyan.bold('📖 Swagger docs: ') + chalk.underline.blue('http://localhost:' + port + '/docs'));
   });
 });
 `;
