@@ -24,9 +24,10 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 - **Serve static JSON or dynamic JS handlers**
 - **Supports GET, POST, PUT, DELETE**
 - **Hot reload on file changes**
-- **Easy CLI commands: `init` and `serve`**
+- **Easy CLI commands: `init`, `serve` and `generate`**
 - **Colorful logs for easy debugging**
 - **RESTful route mapping (no HTTP verb in the URL)**
+- **Swagger documentation generation** 
 
 ---
 
@@ -102,6 +103,11 @@ mockadin serve
 ```
 
 The server will run at [http://localhost:4000](http://localhost:4000) by default.  
+
+After starting the server, you can access the interactive API documentation at:
+[http://localhost:4000/api-docs](http://localhost:4000/docs)
+
+
 You can change the port by setting the `PORT` environment variable:
 
 ```sh
