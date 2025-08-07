@@ -11,10 +11,11 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 3. [Project Initialization](#3-project-initialization)  
 4. [Starting the Server](#4-starting-the-server)
 5. [Generating Mocks Interactively](#5-generating-mocks-interactively)  
-6. [Usage Examples](#6-usage-examples)  
-7. [Route Mapping](#7-route-mapping)  
-8. [Links](#8-links)  
-9. [License](#9-license)  
+6. [CRUD Operations with Data Persistence](#6-crud-operations-with-data-persistence)
+7. [Usage Examples](#7-usage-examples)  
+8. [Route Mapping](#8-route-mapping)  
+9. [Links](#9-links)  
+10. [License](#10-license)  
 
 ---
 
@@ -24,10 +25,11 @@ A simple CLI tool to quickly create and serve mock APIs for development and test
 - **Serve static JSON or dynamic JS handlers**
 - **Supports GET, POST, PUT, DELETE**
 - **Hot reload on file changes**
-- **Easy CLI commands: `init`, `serve` and `generate`**
+- **Easy CLI commands: `init`, `serve`, `generate` and `crud`**
 - **Colorful logs for easy debugging**
 - **RESTful route mapping (no HTTP verb in the URL)**
-- **Swagger documentation generation** 
+- **Swagger documentation generation**
+- **CRUD operations with in-memory data persistence** 
 
 ---
 
@@ -139,7 +141,69 @@ This will guide you through creating mocks for the `books` resource, letting you
 
 ---
 
-## 6. Usage Examples
+## 6. CRUD Operations with Data Persistence
+
+Create complete CRUD endpoints with in-memory data persistence using the `crud` command:
+
+```sh
+mockadin crud [resource-name]
+```
+
+**Options:**
+- `--fields <fields>` - Comma-separated list of fields (e.g., "name,email,age")
+- `--count <count>` - Number of initial records to generate (default: 5)
+
+**Example:**
+
+```sh
+# Create CRUD for products with specific fields
+mockadin crud products --fields "name,price,category" --count 3
+
+# Create CRUD for users (interactive)
+mockadin crud users
+```
+
+This creates complete CRUD endpoints with data persistence:
+
+- `GET /products` - List all records
+- `GET /products/:id` - Get specific record
+- `POST /products` - Create new record
+- `PUT /products/:id` - Update record
+- `DELETE /products/:id` - Delete record
+
+**Features:**
+- ✅ **In-memory data persistence** - Data persists during server session
+- ✅ **Automatic ID generation** - Unique IDs for each record
+- ✅ **Timestamps** - `createdAt` and `updatedAt` fields
+- ✅ **Validation** - Returns 404 for non-existent records
+- ✅ **Hot-reload** - Changes reflected automatically
+
+**Example API Usage:**
+
+```bash
+# Create a product
+curl -X POST http://localhost:4000/products \\
+  -H "Content-Type: application/json" \\
+  -d '{"name": "iPhone 15", "price": 999.99, "category": "Electronics"}'
+
+# List all products
+curl http://localhost:4000/products
+
+# Get specific product
+curl http://localhost:4000/products/1
+
+# Update product
+curl -X PUT http://localhost:4000/products/1 \\
+  -H "Content-Type: application/json" \\
+  -d '{"price": 899.99}'
+
+# Delete product
+curl -X DELETE http://localhost:4000/products/1
+```
+
+---
+
+## 7. Usage Examples
 
 ### a) Static JSON Mock
 
@@ -176,7 +240,7 @@ Requesting `POST /orders` with a JSON body will return a dynamic response.
 
 ---
 
-## 7. Route Mapping
+## 8. Route Mapping
 
 Routes are mapped based on the folder structure:
 
@@ -185,6 +249,14 @@ Routes are mapped based on the folder structure:
 - `mocks/get/products.json` → `GET /products`
 - `mocks/put/users.js` → `PUT /users`
 - `mocks/delete/users.js` → `DELETE /users`
+
+### Dynamic Routes (CRUD)
+
+For CRUD operations, dynamic routes are automatically created:
+
+- `mocks/get/products/[id].js` → `GET /products/:id`
+- `mocks/put/products/[id].js` → `PUT /products/:id`
+- `mocks/delete/products/[id].js` → `DELETE /products/:id`
 
 ### Nested Routes
 
@@ -205,13 +277,13 @@ The file name (without extension) and subfolders define the endpoint path.
 
 ---
 
-## 8. Links
+## 9. Links
 
 - [npm package](https://www.npmjs.com/package/mockadin)
 - [GitHub repository](https://github.com/lucasmarkes/mockadin)
 
 ---
 
-## 9. License
+## 10. License
 
 MIT © Lucas Marques

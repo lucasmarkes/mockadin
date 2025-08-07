@@ -12,6 +12,23 @@ import swaggerJSDoc from 'swagger-jsdoc';
 const app = express();
 app.use(express.json());
 
+// Global in-memory data store for CRUD operations
+global.mockadinDataStore = new Map();
+
+// Initialize with some sample data for CRUD operations
+const initializeDataStore = () => {
+  // You can add initial data here if needed
+  console.log(chalk.cyan('💾 In-memory data store initialized'));
+};
+
+// Helper function to get data store
+const getDataStore = () => {
+  if (!global.mockadinDataStore) {
+    global.mockadinDataStore = new Map();
+  }
+  return global.mockadinDataStore;
+};
+
 const port = process.env.PORT || 4000;
 const mocksDir = path.resolve(process.cwd(), 'mocks');
 
@@ -28,7 +45,7 @@ const generateSwaggerSpec = () => {
       if (!paths[route]) paths[route] = {};
       paths[route][method] = {
         tags: [resourceName],
-        summary: \`Mocked \${method.toUpperCase()} for \${resourceName}\`,
+        summary: 'Mocked ' + method.toUpperCase() + ' for ' + resourceName,
         responses: {
           200: { description: 'Success' }
         }
@@ -76,20 +93,25 @@ const clearRoutes = (app) => {
 
 const validMethods = ['get', 'post', 'put', 'delete'];
 
-const isValidName = (name) => /^[\\w\\-\\.]+$/.test(name);
+const isValidName = (name) => {
+  // Allow alphanumeric, dots, hyphens, brackets, and specific CRUD files
+  return /^[\\w\\-\\.\\[\\]]+$/.test(name) || 
+         name === '[id].js' ||
+         name === 'id.js';
+};
 
 const loadMocks = async (dir, method = null, baseRoute = '') => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
     if (
-      !isValidName(entry.name) ||
+      (!isValidName(entry.name) && entry.name !== '[id].js') ||
       entry.name.startsWith('.') ||
       entry.name.includes('..') ||
       entry.name.includes('/') ||
       entry.name.includes('\\\\') 
     ) {
-      console.log(chalk.red(\`❌ Ignoring invalid file or folder name: \${entry.name}\`));
+      console.log(chalk.red('❌ Ignoring invalid file or folder name: ' + entry.name));
       continue;
     }
 
@@ -102,22 +124,29 @@ const loadMocks = async (dir, method = null, baseRoute = '') => {
         await loadMocks(fullPath, method, path.join(baseRoute, entry.name));
       }
     } else if (entry.isFile() && method) {
-      const route = '/' + path.join(baseRoute, entry.name.replace(/\\.(json|js)$/, '')).replace(/\\\\/g, '/');
+      let route = '/' + path.join(baseRoute, entry.name.replace(/\.(json|js)$/, '')).replace(/\\\\/g, '/');
+      
+      // Handle dynamic routes with [id].js files
+      if (entry.name === '[id].js') {
+        route = route.replace('/[id]', '/:id');
+        console.log(chalk.cyan('🔧 Configuring dynamic route: ' + route));
+      }
+      
       if (entry.name.endsWith('.json')) {
         const content = JSON.parse(await fs.promises.readFile(fullPath, 'utf-8'));
         const handler = (req, res) => res.json(content);
         app[method](route, handler);
-        console.log(methodColor(method)(\`[\${method.toUpperCase()}] \${route}\`));
+        console.log(methodColor(method)('[' + method.toUpperCase() + '] ' + route));
       }
       if (entry.name.endsWith('.js')) {
-        const handlerModule = await import(\`file://\${fullPath}\`);
+        const handlerModule = await import('file://' + fullPath);
         const handler = handlerModule.default;
         if (typeof handler !== 'function') {
-          console.log(chalk.red(\`❌ \${entry.name} does not export a default function.\`));
+          console.log(chalk.red('❌ ' + entry.name + ' does not export a default function.'));
           continue;
         }
         app[method](route, handler);
-        console.log(methodColor(method)(\`[\${method.toUpperCase()}] \${route} (dynamic)\`));
+        console.log(methodColor(method)('[' + method.toUpperCase() + '] ' + route + ' (dynamic)'));
       }
     }
   }
@@ -159,9 +188,10 @@ const startWatching = (watchPath) => {
 };
 
 loadMocks(mocksDir).then(() => {
+  initializeDataStore();
   startWatching(mocksDir);
   app.listen(port, () => {
-    console.log(chalk.yellow(\`🚀 Mock API running at http://localhost:\${port}\`));
+    console.log(chalk.yellow('🚀 Mock API running at http://localhost:' + port));
     console.log(chalk.cyan.bold('📖 Swagger docs: ') + chalk.underline.blue('http://localhost:' + port + '/docs'));
   });
 });
