@@ -8,9 +8,18 @@ import path from 'node:path';
 import chalk from 'chalk';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import cors from 'cors';
 
 const app = express();
 app.use(express.json());
+
+// Enable CORS for all routes
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true, // Allow credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
 // Global in-memory data store for CRUD operations
 global.mockadinDataStore = new Map();
